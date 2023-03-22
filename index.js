@@ -43,6 +43,135 @@ app.post('/s3',upload.single('fileData'), (req, res)=> {
 
 })
 
+app.post('/user', async(req,res)=> {
+    
+    try {
+
+        console.log('running application------new-------------')
+
+        return res.json({
+            statusCode:200,
+            message:"Data find successfully"
+        })
+        
+    } catch (error) {
+
+        return res.json({
+            error:error,
+            statusCode:500
+        })
+        
+    }
+})
+
+
+
+// AWS Notes------------------------------------------------------
+
+// Lambda Function-
+// DynamoDB-
+// Rest Api Gateway-
+
+// -------------Post request in lambda function dynamoDb Api gateway---------------------
+
+const AWS = require('aws-sdk');
+const docClient = new AWS.DynamoDB.DocumentClient();
+
+exports.handler = async (event, context) => {
+  try {
+    const { body } = event;
+    const params = {
+      TableName: 'MyTable',
+      Item: JSON.parse(body)
+    };
+    await docClient.put(params).promise();
+    return {
+      statusCode: 200,
+      body: 'Item saved successfully'
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      statusCode: 500,
+      body: 'Error saving item'
+    };
+  }
+};
+
+
+
+import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
+
+const ddbClient = new DynamoDBClient();
+
+exports.handler = async (event) => {
+  try {
+    const { body } = event;
+    const params = {
+      TableName: 'MyTable',
+      Item: JSON.parse(body)
+    };
+    await ddbClient.send(new PutItemCommand(params));
+    return {
+      statusCode: 200,
+      body: 'Item saved successfully'
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      statusCode: 500,
+      body: 'Error saving item'
+    };
+  }
+};
+
+// -------------Get request in lambda function dynamoDb Api gateway---------------------
+
+const AWS = require('aws-sdk');
+var dynamodb = new AWS.DynamoDB.DocumentClient();
+
+exports.handler = async (event) => {
+  const params = {
+    TableName: 'my-table-name'
+  };
+
+  try {
+    const data = await dynamodb.scan(params).promise();
+    return data.Items;
+  } catch (err) {
+    console.log('Error', err);
+  }
+};
+
+// -------------Update request in lambda function dynamoDb Api gateway---------------------
+
+const AWS = require('aws-sdk');
+const dynamodb = new AWS.DynamoDB.DocumentClient();
+
+exports.handler = async (event) => {
+  const params = {
+    TableName: 'my-table-name',
+    Key: {
+      'id': '123'
+    },
+    UpdateExpression: 'set attribute1 = :val1',
+    ExpressionAttributeValues: {
+      ':val1': 'new value'
+    }
+  };
+
+  try {
+    const data = await dynamodb.update(params).promise();
+    console.log('UpdateItem succeeded:', JSON.stringify(data, null, 2));
+  } catch (err) {
+    console.log('Error')
+}
+}
+
+
+
+
+
 app.listen(port,()=> {
     console.log('running on port',`${port}`);
 })
